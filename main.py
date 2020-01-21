@@ -3,20 +3,10 @@ from timeit import default_timer as time
 import argparse
 import numba
 import ctypes
-import ctypes
+import torch
 
 
-def matrix_product_1(a, b):
-    return [
-        [
-            sum([a[i][k] * b[k][i] for k in range(len(a[i]))])
-            for i in range(len(a))
-        ]
-        for j in range(len(b))
-    ]
-
-
-def matrix_product_2(a, b):
+def matrix_product(a, b):
     res = np.zeros((len(a), len(b)), dtype=np.float32)
 
     for i in range(len(a)):
@@ -56,7 +46,19 @@ def matrix_product_numba_parallel(a, b):
     return res
 
 
-libmatmul = ctypes.CDLL('libmatmul.so')
+@torch.jit.script
+def matrix_product_torch(a, b):
+    res = torch.zeros((len(a), len(b)), dtype=torch.float32)
+
+    for i in range(len(a)):
+        for j in range(len(b)):
+            s = torch.zeros(1)
+            for k in range(len(a[i])):
+                s += a[i][k] * b[k][j]
+
+    return res
+
+libmatmul = ctypes.CDLL('./libmatmul.so')
 libmatmul.matmul.argtypes = [
     ctypes.POINTER(ctypes.c_float),
     ctypes.POINTER(ctypes.c_float),
@@ -93,22 +95,24 @@ if __name__ == '__main__':
 
     n = args.n
 
+    start_time = time()
     a = [
         [i / (j + 1) for j in range(n)]
         for i in range(n)
     ]
-
-    # start_time = time()
-    # c = matrix_product_1(a, a)
-    # finish_time = time()
-    # print('Multiplication 1 time: {:.2f}'.format(finish_time - start_time))
-    #
-    # start_time = time()
-    # c = matrix_product_1(a, a)
-    # finish_time = time()
-    # print('Multiplication 2 time: {:.2f}'.format(finish_time - start_time))
-
     a = np.array(a, dtype=np.float32)
+    finish_time = time()
+    print('Matrix generation time: {:.2f}'.format(finish_time - start_time))
+
+    start_time = time()
+    c = matrix_product(a, a)
+    finish_time = time()
+    print('Multiplication 1 time: {:.2f}'.format(finish_time - start_time))
+
+    start_time = time()
+    c = matrix_product_torch(torch.FloatTensor(a), torch.FloatTensor(a))
+    finish_time = time()
+    print('Multiplication torch time: {:.2f}'.format(finish_time - start_time))
 
     start_time = time()
     c = a @ a

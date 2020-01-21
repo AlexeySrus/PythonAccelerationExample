@@ -1,5 +1,6 @@
-// #include <omp.h>
+#include <omp.h>
 #include <iostream>
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -7,6 +8,7 @@ extern "C" {
 
 void matmul(const float *a, const float *b, float *c, const int n)
 {
+#pragma omp parallel for schedule(dynamic) shared(a, b, c)
     for (std::size_t i = 0; i < n; ++i) {
         for (std::size_t j = 0; j < n; ++j) {
             float s = 0;
