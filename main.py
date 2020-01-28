@@ -173,7 +173,7 @@ if __name__ == '__main__':
             'N, numpy, numba, parallel numba, C, C with OpenMP\n'
         )
 
-        for n in tqdm([10, 100, 200, 500, 1000, 1500, 2500, 4000, 5000, 10000]):
+        for n in tqdm(list(range(1, 100, 10)) + list(range(100, 1000, 100)) + list(range(1000, 10001, 1000))):
             # print('\nN = {}'.format(n))
 
             start_time = time()
@@ -182,61 +182,71 @@ if __name__ == '__main__':
             #     for i in range(n)
             # ]
             # a = np.array(a, dtype=np.float32)
-            a = np.zeros((n, n), dtype=np.float32)
+            a = np.random.rand(n, n).astype(np.float32)
+            b = np.random.rand(n, n).astype(np.float32)
             finish_time = time()
             generation_time = finish_time - start_time
             # print('Matrix generation time: {:.2f}'.format(generation_time))
 
             # start_time = time()
-            # c = matrix_product(a, a)
+            # c = matrix_product(a, b)
             # finish_time = time()
             # print('Multiplication 1 time: {:.2f}'.format(finish_time - start_time))
 
             # start_time = time()
-            # c = matrix_product_torch(torch.FloatTensor(a), torch.FloatTensor(a))
+            # c = matrix_product_torch(torch.FloatTensor(a), torch.FloatTensor(b))
             # finish_time = time()
             # print('Multiplication torch time: {:.2f}'.format(finish_time - start_time))
 
             start_time = time()
-            c = a @ a
+            c = a @ b
             finish_time = time()
             numpy_time = finish_time - start_time
             # print('Multiplication numpy time: {:.2f}'.format(numpy_time))
 
+            ta = torch.FloatTensor(a)
+            tb = torch.FloatTensor(b)
             start_time = time()
-            c = matrix_product_numba(a, a)
+            c = ta @ tb
+            finish_time = time()
+            pytorch_time = finish_time - start_time
+            # print('Multiplication pytorch time: {:.2f}'.format(pytorch_time))
+
+            start_time = time()
+            c = matrix_product_numba(a, b)
             finish_time = time()
             numba_time = finish_time - start_time
             # print('Multiplication numba time: {:.2f}'.format(numba_time))
 
             start_time = time()
-            c = matrix_product_numba_parallel(a, a)
+            c = matrix_product_numba_parallel(a, b)
             finish_time = time()
             parallel_numba_time = finish_time - start_time
             # print('Multiplication numba parallel time: {:.2f}'.format(parallel_numba_time))
 
             start_time = time()
-            c = matrix_product_numba_parallel(a, a)
+            c = matrix_product_numba_parallel(a, b)
             finish_time = time()
             cuda_numba_time = finish_time - start_time
             # print('Multiplication numba cuda time: {:.2f}'.format(cuda_numba_time))
 
             start_time = time()
-            c = matrix_product_c(a, a)
+            c = matrix_product_c(a, b)
             finish_time = time()
             c_time = finish_time - start_time
             # print('Multiplication C time: {:.2f}'.format(c_time))
 
             start_time = time()
-            c = matrix_product_c_parallel(a, a)
+            c = matrix_product_c_parallel(a, b)
             finish_time = time()
             parallel_c_time = finish_time - start_time
             # print('Multiplication C with OpenMP time: {:.2f}'.format(parallel_c_time))
 
             f.write(
-                '{}, {:.7f}, {:.7f}, {:.7f}, {:.7f}, {:.7f}, {:.7f}\n'.format(
+                '{}, {:.7f}, {:.7f}, {:.7f}, {:.7f}, {:.7f}, {:.7f}, {:.7f}\n'.format(
                     n,
                     numpy_time,
+                    pytorch_time,
                     numba_time,
                     parallel_numba_time,
                     cuda_numba_time,
