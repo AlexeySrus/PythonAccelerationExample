@@ -170,7 +170,7 @@ if __name__ == '__main__':
 
     with open('time_results.txt', 'w') as f:
         f.write(
-            'N, numpy, numba, parallel numba, C, C with OpenMP\n'
+            'N, numpy, pytorch_time, numba, parallel numba, cuda_numba_time, C, C with OpenMP\n'
         )
 
         for n in tqdm(list(range(1, 100, 10)) + list(range(100, 1000, 100)) + list(range(1000, 10001, 1000))):
