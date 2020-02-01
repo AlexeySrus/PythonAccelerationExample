@@ -1,13 +1,3 @@
-import numba
-
-
-@numba.jit(nopython=True)
-def eval_sum(array):
-    s = 0
-    for i in range(len(array)):
-        s += array[i]
-    return s
-
 import numpy as np
 from timeit import default_timer as time
 import argparse
